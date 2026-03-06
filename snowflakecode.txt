@@ -1,0 +1,68 @@
+create warehouse new_york_yellow_taxi; 
+
+create database new_york_yellow_taxi_raw; 
+
+create database new_york_yellow_taxi_analytics; 
+
+create schema new_york_yellow_taxi_raw.yellow_taxi_data; 
+
+CREATE OR REPLACE TABLE raw_yellow_taxi (src VARIANT);
+
+
+SELECT * 
+FROM raw_yellow_taxi;
+
+
+SELECT * 
+FROM analytics.dbt_ssimhadri.stg_yellow_trips;
+
+SELECT * 
+FROM TAXI_ZONE_LOOKUP;
+
+
+SELECT * 
+FROM analytics.dbt_ssimhadri.dim_zones;
+
+SELECT * 
+FROM analytics.dbt_ssimhadri.dim_datetime;
+
+SELECT * 
+FROM analytics.dbt_ssimhadri.dim_vendor;
+
+SELECT * 
+FROM analytics.dbt_ssimhadri.dim_payment_type;
+
+SELECT * 
+FROM analytics.dbt_ssimhadri.fct_trips;
+
+
+SELECT * 
+FROM analytics.dbt_ssimhadri.fct_trips;
+
+SELECT COUNT(*) as total_trips,
+                      SUM(total_amount) as total_revenue,
+                      AVG(TRIP_DURATION_MINUTES) as avg_trip_duration
+                      FROM analytics.dbt_ssimhadri.fct_trips
+
+SELECT DAYNAME(pickup_ts),
+        EXTRACT(hour FROM pickup_ts) AS hour,
+        COUNT(distinct trip_id) AS trips
+    FROM analytics.dbt_ssimhadri.fct_trips
+    --WHERE DAYNAME(pickup_ts) = 'Monday'
+    GROUP BY 1,2
+    ORDER BY 1;
+
+
+ SELECT
+        pu.zone AS pickup_zone,
+        do.zone AS dropoff_zone,
+        COUNT(*) AS trips
+    FROM analytics.dbt_ssimhadri.fct_trips t
+    LEFT JOIN analytics.dbt_ssimhadri.dim_zones pu
+        ON t.pu_location_id = pu.location_id
+    LEFT JOIN analytics.dbt_ssimhadri.dim_zones do
+        ON t.do_location_id = do.location_id
+    WHERE DAYNAME(t.pickup_ts) = 'Sun'
+    GROUP BY 1,2
+    ORDER BY trips DESC
+    LIMIT 5
